@@ -7,6 +7,29 @@
             [tessera.protocols.tessera :as tessera]
             [tessera.protocols.watcher :as watch]))
 
+(defn revoked-status
+  []
+  (status/->simple-status
+   {::status/revoked true}))
+
+(defn pending-status
+  []
+  (status/->simple-status
+   {::status/pending true}))
+
+(defn failed-status
+  [failure]
+  (status/->simple-status
+   {::status/ready true
+    ::status/failed true
+    ::failure failure}))
+
+(defn success-status
+  []
+  (status/->simple-status
+   {::status/ready true
+    ::status/succeeded true}))
+
 (deftype Promise
     [^:mutable fulfilled
      ^:mutable failure
@@ -17,7 +40,7 @@
   (status [_]
     (cond revoked (revoked-status)
           (not fulfilled) (pending-status)
-          (some? failure) (failed-status)
+          (some? failure) (failed-status failure)
           :else (success-status)))
   (add-watcher [this watcher] (tessera/add-watcher this (uuid) watcher))
   (add-watcher [this token watcher]
