@@ -37,6 +37,7 @@
   (add-watcher [this watcher] (tessera/add-watcher this (uuid) watcher))
   (add-watcher [this token watcher]
     (set! watchers (assoc watchers token watcher))
+    ;; Maybe don't:
     (->> (change/->simple-state-change this (tessera/status this) value)
          (watch/notify watcher)))
   (remove-watcher [_ token]
