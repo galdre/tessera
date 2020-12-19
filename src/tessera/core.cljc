@@ -1,4 +1,4 @@
-(ns tessera.impl
+(ns tessera.core
   (:require [tessera.impl.watcher-fn :as w-fn]
             [tessera.protocols.deliverable :as deliver]
             [tessera.protocols.redeemable :as redeem]
@@ -58,7 +58,8 @@
 
 (defn ready?
   [tessera]
-  (and (or *unsafe* (satisfies? redeem/Redeemable x))
+  (-> tessera tessera/status status/ready?)
+  #_(and (or *unsafe* (satisfies? redeem/Redeemable x))
        (redeem/can-redeem? tessera)))
 
 (defn redeem
