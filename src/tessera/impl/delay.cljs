@@ -3,7 +3,8 @@
             [tessera.protocols.state-change :as change]
             [tessera.protocols.status :as status]
             [tessera.protocols.tessera :as tessera]
-            [tessera.protocols.watcher :as watch]))
+            [tessera.protocols.watcher :as watch])
+  (:refer-clojure :exclude [->Delay Delay]))
 
 (defn ready-status
   []
@@ -34,7 +35,7 @@
     (cond (not fulfilled) (ready-status)
           (some? failure) (failure-status failure)
           :else (success-status)))
-  (add-watcher [this watcher] (tessera/add-watcher this (uuid) watcher))
+  (add-watcher [this watcher] (tessera/add-watcher this (random-uuid) watcher))
   (add-watcher [this token watcher]
     (set! watchers (assoc watchers token watcher))
     ;; Maybe don't:
@@ -49,11 +50,12 @@
   (can-redeem? [_] true)
   (redeem [_]
     (if fulfilled
-      value
+      (or failure value)
       (let [v (try (thunk)
                    (catch js/Error e
                      (set! failure e)
                      ::failed))]
         (when (not= v ::failed)
           (set! value v))
-        (set! fulfilled true)))))
+        (set! fulfilled true)
+        (or failure value)))))

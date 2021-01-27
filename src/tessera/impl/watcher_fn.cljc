@@ -5,7 +5,7 @@
 (deftype WatcherFn [f]
   watch/Watcher
   (notify [_ state-change]
-    (f (change/status) (change/status value))
+    (f (change/status state-change) (change/value state-change))
     nil))
 
 (defn ->watcher-fn
