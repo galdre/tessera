@@ -8,7 +8,9 @@
    [tessera.protocols.status :as status]
    [tessera.protocols.tessera :as tessera]
    [tessera.protocols.watcher :as watch]
-   #?(:cljs [tessera.impl.delay :as delay])))
+   #?@(:cljs
+       [[tessera.impl.delay :as delay]
+        [tessera.impl.promise :as promise]])))
 
 ;; TODO: write macro to enable compile-time optimizations
 (def ^:dynamic *unsafe* false)
@@ -127,8 +129,8 @@
   ([tessera token value]
    (when (deliver/can-deliver? tessera)
      (when-let [state-change ((tokenize deliver/deliver token) tessera value)]
-       (notify-watchers state-change)
-       true))))
+       (notify-watchers state-change))
+     true)))
 
 (defn fumble
   ([tessera error] (fumble tessera nil error))
@@ -141,6 +143,7 @@
 ;; cljs primitives
 
 #?(:cljs
-   (defn delay*
-     [f]
-     (delay/->Delay f nil nil false {})))
+   (defn delay* [f] (delay/->Delay f nil nil false {})))
+
+#?(:cljs
+   (defn promise* [] (promise/->Promise false nil nil false {})))

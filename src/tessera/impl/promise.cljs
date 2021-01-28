@@ -42,7 +42,7 @@
           (not fulfilled) (pending-status)
           (some? failure) (failed-status failure)
           :else (success-status)))
-  (add-watcher [this watcher] (tessera/add-watcher this (uuid) watcher))
+  (add-watcher [this watcher] (tessera/add-watcher this (random-uuid) watcher))
   (add-watcher [this token watcher]
     (set! watchers (assoc watchers token watcher))
     ;; Maybe don't:
@@ -53,7 +53,7 @@
     nil) ; TODO: decide return contract
   (dependencies [_] nil) 
   redeem/Redeemable
-  (can-redeem? [_] (some? fulfilled))
+  (can-redeem? [_] (true? fulfilled))
   (redeem [_] (or failure value))
   revoke/Revokable
   (can-revoke? [_] (nil? fulfilled))

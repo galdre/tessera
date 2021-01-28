@@ -7,13 +7,38 @@
         thunk (fn [] (swap! side-effect inc) :done)
         delay (core/delay* thunk)]
     (t/is (core/tessera? delay))
-    (t/is (not (core/pending? delay)))
+    (t/is (not (core/pending? delay))); Wrong - remove not
     (t/is (not (core/failed? delay)))
     (t/is (not (core/succeeded? delay)))
     (t/is (core/redeemable? delay))
     (t/is (core/ready? delay))
     (t/is (= 0 @side-effect))
+    ;; (t/is (not (core/pending? delay)))
+    ;; (t/is (core/ready? delay))
     (t/is (= :done (core/redeem delay)))
     (t/is (= 1 @side-effect))
     (t/is (= :done (core/redeem delay)))
     (t/is (= 1 @side-effect))))
+
+(t/deftest unit:promise*
+  (let [promise (core/promise*)
+        test-pending (fn [promise]
+                       (t/testing "Pre-fulfilled promise"
+                         (t/is (core/tessera? promise))
+                         (t/is (core/pending? promise))
+                         (t/is (not (core/failed? promise)))
+                         (t/is (not (core/succeeded? promise)))
+                         (t/is (core/redeemable? promise))
+                         (t/is (not (core/ready? promise)))
+                         (t/is (= ::core/error (core/redeem promise))) ; TODO
+                         (t/is (core/revokable? promise))
+                         (t/is (not (core/revoked? promise)))
+                         (t/is (core/deliverable? promise))))]
+    (test-pending promise)
+    ;; Deliver!
+    (t/testing "Delivered promise"
+      (t/is (true? (core/deliver promise ::delivered)))
+      (t/is (not (core/pending? promise)))
+      (t/is (core/succeeded? promise))
+      (t/is (core/ready? promise))
+      (t/is (= ::delivered (core/redeem promise))))))
