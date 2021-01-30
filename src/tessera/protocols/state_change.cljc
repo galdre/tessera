@@ -11,3 +11,5 @@
     (tessera [_] tessera)
     (status [_] status)
     (value [_] value)))
+
+(defn state-change? [x] (satisfies? StateChange x))

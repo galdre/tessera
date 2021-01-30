@@ -70,7 +70,11 @@
   [tessera]
   (if-not (redeem/can-redeem? tessera)
     ::error #_(error/irredeemable!)
-    (redeem/redeem tessera)))
+    (let [redemption (redeem/redeem tessera)]
+      (if (change/state-change? redemption)
+        (do (notify-watchers redemption)
+            (change/value redemption))
+        redemption))))
 
 #?(:clj
    (defn redeem!
@@ -147,3 +151,11 @@
 
 #?(:cljs
    (defn promise* [] (promise/->Promise false nil nil false {})))
+
+#?(:cljs
+   (defn watcher* [f] (w-fn/->watcher-fn f)))
+
+#?(:cljs
+   (defn watch* [tessera watcher-fn]
+     (->> (watcher* watcher-fn)
+          (tessera/add-watcher tessera))))

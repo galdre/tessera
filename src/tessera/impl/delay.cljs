@@ -39,7 +39,7 @@
   (add-watcher [this token watcher]
     (set! watchers (assoc watchers token watcher))
     ;; Maybe don't:
-    (->> (change/->simple-state-change this (tessera/status this) value)
+    #_(->> (change/->simple-state-change this (tessera/status this) value)
          (watch/notify watcher)))
   (remove-watcher [_ token]
     (set! watchers (dissoc watchers token))
@@ -48,7 +48,7 @@
   (dependencies [_] nil)
   redeem/Redeemable
   (can-redeem? [_] true)
-  (redeem [_]
+  (redeem [this]
     (if fulfilled
       (or failure value)
       (let [v (try (thunk)
@@ -58,4 +58,7 @@
         (when (not= v ::failed)
           (set! value v))
         (set! fulfilled true)
-        (or failure value)))))
+        (change/->simple-state-change
+         this
+         (tessera/status this)
+         (or failure value))))))
