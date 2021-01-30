@@ -37,10 +37,7 @@
           :else (success-status)))
   (add-watcher [this watcher] (tessera/add-watcher this (random-uuid) watcher))
   (add-watcher [this token watcher]
-    (set! watchers (assoc watchers token watcher))
-    ;; Maybe don't:
-    #_(->> (change/->simple-state-change this (tessera/status this) value)
-         (watch/notify watcher)))
+    (set! watchers (assoc watchers token watcher)))
   (remove-watcher [_ token]
     (set! watchers (dissoc watchers token))
     nil) ; TODO: decide return contract

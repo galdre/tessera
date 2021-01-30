@@ -44,10 +44,7 @@
           :else (success-status)))
   (add-watcher [this watcher] (tessera/add-watcher this (random-uuid) watcher))
   (add-watcher [this token watcher]
-    (set! watchers (assoc watchers token watcher))
-    ;; Maybe don't:
-    (->> (change/->simple-state-change this (tessera/status this) value)
-         (watch/notify watcher)))
+    (set! watchers (assoc watchers token watcher)))
   (remove-watcher [_ token]
     (set! watchers (dissoc watchers token))
     nil) ; TODO: decide return contract
@@ -65,7 +62,7 @@
   (deliver [this _ v]
     (set! fulfilled true)
     (set! value v)
-    (doseq [watcher watchers]
+    (doseq [[_ watcher] watchers] ; do outside `deliver`, which should return state-change.
       (->> (change/->simple-state-change this (tessera/status this) value)
            (watch/notify watcher))))
   (fumble [this error] (deliver/fumble this nil error))

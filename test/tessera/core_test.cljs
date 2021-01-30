@@ -44,11 +44,21 @@
       (t/is (= ::delivered (core/redeem promise))))))
 
 (t/deftest unit:watcher*
-  (let [side-effect (atom nil)
-        f (fn [status value]
-            (reset! side-effect [status value]))
-        delay (core/delay* #(inc 4))]
-    (core/watch* delay f)
-    (t/is (nil? @side-effect))
-    (t/is (= 5 (core/redeem delay)))
-    (t/is (= 5 (second @side-effect)))))
+  (t/testing "Watching a delay"
+    (let [side-effect (atom nil)
+          f (fn [status value]
+              (reset! side-effect [status value]))
+          delay (core/delay* #(inc 4))]
+      (core/watch* delay f)
+      (t/is (nil? @side-effect))
+      (t/is (= 5 (core/redeem delay)))
+      (t/is (= 5 (second @side-effect)))))
+  (t/testing "Watching a promise"
+    (let [side-effect (atom nil)
+          f (fn [status value]
+              (reset! side-effect [status value]))
+          promise (core/promise*)]
+      (core/watch* promise f)
+      (t/is (nil? @side-effect))
+      (t/is (true? (core/deliver promise 11)))
+      (t/is (= 11 (second @side-effect))))))
