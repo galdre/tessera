@@ -9,7 +9,8 @@
 (defn ready-status
   []
   (status/->simple-status
-   {::status/ready true}))
+   {::status/ready true
+    ::status/pending true}))
 
 (defn failure-status
   [failure]

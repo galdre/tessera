@@ -7,15 +7,15 @@
         thunk (fn [] (swap! side-effect inc) :done)
         delay (core/delay* thunk)]
     (t/is (core/tessera? delay))
-    (t/is (not (core/pending? delay))); Wrong - remove not
+    (t/is (core/pending? delay))
     (t/is (not (core/failed? delay)))
     (t/is (not (core/succeeded? delay)))
     (t/is (core/redeemable? delay))
     (t/is (core/ready? delay))
     (t/is (= 0 @side-effect))
-    ;; (t/is (not (core/pending? delay)))
-    ;; (t/is (core/ready? delay))
     (t/is (= :done (core/redeem delay)))
+    (t/is (not (core/pending? delay)))
+    (t/is (core/ready? delay))
     (t/is (= 1 @side-effect))
     (t/is (= :done (core/redeem delay)))
     (t/is (= 1 @side-effect))))
