@@ -17,8 +17,9 @@
     (t/is (not (core/pending? delay)))
     (t/is (core/ready? delay))
     (t/is (= 1 @side-effect))
-    (t/is (= :done (core/redeem delay)))
-    (t/is (= 1 @side-effect))))
+    (t/testing "Redeeming again does not compute a second time"
+      (t/is (= :done (core/redeem delay)))
+      (t/is (= 1 @side-effect)))))
 
 (t/deftest unit:promise*
   (let [promise (core/promise*)
@@ -35,13 +36,15 @@
                          (t/is (not (core/revoked? promise)))
                          (t/is (core/deliverable? promise))))]
     (test-pending promise)
-    ;; Deliver!
     (t/testing "Delivered promise"
       (t/is (true? (core/deliver promise ::delivered)))
       (t/is (not (core/pending? promise)))
       (t/is (core/succeeded? promise))
       (t/is (core/ready? promise))
-      (t/is (= ::delivered (core/redeem promise))))))
+      (t/is (= ::delivered (core/redeem promise)))
+      (t/testing "Cannot deliver a second time"
+        (t/is (nil? (core/deliver promise ::delivered-again)))
+        (t/is (= ::delivered (core/redeem promise)))))))
 
 (t/deftest unit:watcher*
   (t/testing "Watching a delay"
