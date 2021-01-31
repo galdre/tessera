@@ -104,8 +104,8 @@
   ([tessera token]
    (when (revoke/can-revoke? tessera)
      (when-let [state-change ((tokenize revoke/revoke token) tessera)]
-       (notify-watchers state-change)
-       true))))
+       (notify-watchers state-change))
+     true)))
 
 (defn revoke-all
   ([tessera] (revoke-all tessera nil))
@@ -117,8 +117,8 @@
      (when (revoke/can-revoke? tessera)
        (when-let [state-change ((tokenize revoke/revoke token) tessera)]
          (notify-watchers state-change)
-         (trigger-recursively state-change token)
-         true)))))
+         (trigger-recursively state-change token))
+       true))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic functions for all deliverable tesserae
@@ -141,8 +141,8 @@
   ([tessera token error]
    (when (deliver/can-deliver? tessera)
      (when-let [state-change ((tokenize deliver/fumble token) tessera error)]
-       (notify-watchers state-change)
-       true))))
+       (notify-watchers state-change))
+     true)))
 
 ;; cljs primitives
 

@@ -48,7 +48,8 @@
   (remove-watcher [_ token]
     (set! watchers (dissoc watchers token))
     nil) ; TODO: decide return contract
-  (dependencies [_] nil) 
+  (dependencies [_] nil)
+  (watchers [_] (vals watchers))
   redeem/Redeemable
   (can-redeem? [_] (true? fulfilled))
   (redeem [_] (or failure value))
@@ -60,15 +61,13 @@
   (can-deliver? [_] (and (not revoked) (not fulfilled)))
   (deliver [this value] (deliver/deliver this nil value))
   (deliver [this _ v]
-    (set! fulfilled true)
-    (set! value v)
-    (doseq [[_ watcher] watchers] ; do outside `deliver`, which should return state-change.
-      (->> (change/->simple-state-change this (tessera/status this) value)
-           (watch/notify watcher))))
+    (when (deliver/can-deliver? this)
+      (set! fulfilled true)
+      (set! value v)
+      (change/->simple-state-change this (tessera/status this) value)))
   (fumble [this error] (deliver/fumble this nil error))
   (fumble [this _ error]
-    (set! fulfilled true)
-    (set! failure error)
-    (doseq [watcher watchers]
-      (->> (change/->simple-state-change this (tessera/status this) failure)
-           (watch/notify watcher)))))
+    (when (deliver/can-deliver? this)
+      (set! fulfilled true)
+      (set! failure error)
+      (change/->simple-state-change this (tessera/status this) failure))))
