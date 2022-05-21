@@ -56,7 +56,6 @@
         (when (not= v ::failed)
           (set! value v))
         (set! fulfilled true)
-        (change/->simple-state-change
-         this
-         (tessera/status this)
-         (or failure value))))))
+        (change/->simple-state-change this
+                                      (tessera/status this)
+                                      (or failure value))))))

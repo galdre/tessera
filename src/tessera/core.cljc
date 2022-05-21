@@ -34,6 +34,10 @@
   [tessera]
   (-> tessera tessera/status status/succeeded?))
 
+(defn status
+  [tessera]
+  (-> tessera tessera/status))
+
 (defn watch
   [tessera f]
   (->> (w-fn/->WatcherFn f)
@@ -43,22 +47,27 @@
   [tessera token]
   (tessera/remove-watcher tessera token))
 
-(defn- notify-watchers
-  [state-change]
-  (loop [[change & changes] [state-change]]
-    (when change
-      (recur
-       (into changes
-             (keep #(watch/notify % change))
-             (-> change change/tessera tessera/watchers))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Basic functions for all redeemable tesserae
+(defn deliverable?
+  [x]
+  (and (tessera? x)
+       (satisfies? deliver/Deliverable x)))
 
 (defn redeemable?
   [x]
   (and (tessera? x)
        (satisfies? redeem/Redeemable x)))
+
+(defn- notify-watchers
+  [state-change]
+  (loop [[change :as changes] [state-change]]
+    (when change
+      (recur
+       (into (subvec changes 1)
+             (keep #(watch/notify % change))
+             (-> change change/tessera tessera/watchers))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Basic functions for all redeemable tesserae
 
 (defn ready?
   [tessera]
@@ -122,11 +131,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic functions for all deliverable tesserae
-
-(defn deliverable?
-  [x]
-  (and (tessera? x)
-       (satisfies? deliver/Deliverable x)))
 
 (defn deliver
   ([tessera value] (deliver tessera nil value))
