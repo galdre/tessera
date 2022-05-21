@@ -58,6 +58,8 @@
        (satisfies? redeem/Redeemable x)))
 
 (defn- notify-watchers
+  ;; TODO: topological sort, then notify.
+  ;; may need to split notify/apply? Think more and not at midnight.
   [state-change]
   (loop [[change :as changes] [state-change]]
     (when change

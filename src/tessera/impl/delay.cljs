@@ -59,3 +59,54 @@
         (change/->simple-state-change this
                                       (tessera/status this)
                                       (or failure value))))))
+
+(deftype ReactiveDelay
+    [thunk
+     dependencies
+     dependency->watch-token
+     ^:mutable dependency->value
+     ^:mutable value
+     ^:mutable failure
+     ^:mutable fulfilled
+     ^:mutable watchers]
+  tessera/Tessera
+  (status [_]
+    (cond (not fulfilled) (ready-status)
+          (some? failure) (failure-status failure)
+          :else (success-status)))
+  (add-watcher [this watcher]
+    (tessera/add-watcher this (random-uuid) watcher))
+  (add-watcher [this token watcher]
+    (set! watchers (assoc watchers token watcher)))
+  (remove-watcher [this token]
+    (set! watchers (dissoc watchers token))
+    nil) ; TODO: decide return contract
+  (watchers [this] (vals watchers))
+  (dependencies [this] dependencies)
+  redeem/Redeemable
+  (can-redeem? [_]
+    (every? redeem/can-redeem? dependencies))
+  (redeem [this]
+    (if fulfilled
+      (or failure value)
+      (let [inputs (map dependency->value dependencies)
+            v (try (apply thunk inputs)
+                   (catch js/Error e
+                     (set! failure e)
+                     ::failed))]
+        (when (not= v ::failed)
+          (set! value v))
+        (set! fulfilled true)
+        (change/->simple-state-change this
+                                      (tessera/status this)
+                                      (or failure value)))))
+  watch/Watcher
+  (notify [this state-change]
+    (set! fulfilled false)
+    (set! dependency->value
+          (assoc dependency->value
+                 (change/tessera state-change)
+                 (change/value state-change)))
+    (change/->simple-state-change this
+                                  (tessera/status this)
+                                  (or failure value))))
